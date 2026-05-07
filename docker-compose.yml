@@ -1,4 +1,21 @@
 services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles:
+      - fixed-ip
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/fixed-ip/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -7,11 +24,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-scrumptious}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_password}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_HOST_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,10 +43,12 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-scrumptious}:${POSTGRES_PASSWORD:-change_me_password}@db:5432/${POSTGRES_DB:-scrumptious}?schema=public
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "${APP_HOST_BIND:-127.0.0.1}:${PORT:-3000}:${PORT:-3000}"
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

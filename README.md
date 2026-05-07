@@ -187,6 +187,22 @@ Check `/`, `/checkout`, `/order/<known-order-number>` if you have one, and `/adm
 
 ## Operations
 
+For a fixed public IP deployment, use the same root `.env` file and enable the `fixed-ip` Docker Compose profile:
+
+```env
+COMPOSE_PROFILES=fixed-ip
+SITE_ADDRESS=example.com, www.example.com
+APP_BASE_URL=https://example.com
+```
+
+After DNS points to the fixed public IP and the router forwards TCP `80` and `443` to the Docker host, deploy with:
+
+```bash
+docker compose up --build -d
+```
+
+The `proxy` service runs Caddy in Docker, terminates HTTPS, and forwards traffic to the app service on the internal Docker network.
+
 To stop containers:
 
 ```bash
