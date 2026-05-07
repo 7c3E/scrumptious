@@ -11,9 +11,6 @@
     "test": "vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "docker:build": "docker build -t scrumptious-shopping-site .",
-    "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down",
     "deploy:docker": "docker compose up --build -d"
   },
